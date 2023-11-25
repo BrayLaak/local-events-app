@@ -1,26 +1,50 @@
-﻿using local_events_app.Controllers;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using local_events_app.Controllers;
+using local_events_app.Models;
+using local_events_app.Services;
 
-namespace local_events_app.UI
+public class ConsoleUI
 {
-    public class ConsoleUI
+    private readonly MeetupController _meetupController;
+
+    public ConsoleUI(MeetupController meetupController)
     {
-        private readonly MeetupController _meetupController;
+        _meetupController = meetupController;
+    }
 
-        public ConsoleUI(MeetupController meetupController)
+    public async Task Run()
+    {
+        while (true)
         {
-            _meetupController = meetupController;
-        }
+            Console.WriteLine("1. Search Local Meetup Events");
+            Console.WriteLine("2. Display Saved Meetup Events");
+            Console.WriteLine("3. Exit");
 
-        // Methods for displaying and interacting with the console UI
-        public void Run()
-        {
-            // Console UI loop implementation tbd
-            // ...
+            Console.Write("Enter your choice: ");
+            var choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1":
+                    Console.Write("Enter location: ");
+                    var location = Console.ReadLine();
+                    await _meetupController.SearchLocalEventsAsync(location);
+                    break;
+
+                case "2":
+                    // Logic to display saved Meetup events tbd
+                    break;
+
+                case "3":
+                    Environment.Exit(0);
+                    break;
+
+                default:
+                    Console.WriteLine("Invalid choice. Please try again.");
+                    break;
+            }
         }
     }
 }

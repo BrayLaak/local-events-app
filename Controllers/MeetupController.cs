@@ -10,7 +10,6 @@ namespace local_events_app.Controllers
     public class MeetupController
     {
         private readonly MeetupService _meetupService;
-        private readonly MeetupService _meetupService; // Add if needed
 
         public MeetupController(MeetupService meetupService)
         {
