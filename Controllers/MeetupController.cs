@@ -1,9 +1,7 @@
-﻿using local_events_app.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using local_events_app.Models;
+using local_events_app.Services;
 
 namespace local_events_app.Controllers
 {
@@ -16,13 +14,9 @@ namespace local_events_app.Controllers
             _meetupService = meetupService;
         }
 
-        // Methods to handle Meetup API actions
-        public async Task SearchLocalEventsAsync(string location)
+        public async Task<List<MeetupEvent>> SearchLocalEventsAsync(string location)
         {
-            var meetupEvents = await _meetupService.SearchLocalEventsAsync(location);
-
-            // Handle and display Meetup events in the console UI
-            // ...
+            return await _meetupService.SearchLocalEventsAsync(location);
         }
     }
 }

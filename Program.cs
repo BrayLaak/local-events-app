@@ -9,13 +9,11 @@ class Program
 {
     static void Main()
     {
-        // Build configuration
         IConfiguration configuration = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
 
-        // Setup Dependency Injection
         var serviceProvider = new ServiceCollection()
             .AddSingleton<IConfiguration>(configuration)
             .AddScoped<MeetupDbContext>()
@@ -23,7 +21,6 @@ class Program
             .AddScoped<MeetupController>()
             .BuildServiceProvider();
 
-        // Retrieve configuration values
         var baseUrl = configuration["MeetupApi:BaseUrl"];
         var apiKey = configuration["MeetupApi:ApiKey"];
 
@@ -33,7 +30,7 @@ class Program
             var meetupService = scope.ServiceProvider.GetRequiredService<MeetupService>();
             var meetupController = scope.ServiceProvider.GetRequiredService<MeetupController>();
 
-            var consoleUI = new ConsoleUI(meetupController);
+            var consoleUI = new ConsoleUI(meetupController, dbContext);
 
             // Run the console UI
             consoleUI.Run().Wait();
