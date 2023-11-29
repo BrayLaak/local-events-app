@@ -1,4 +1,5 @@
-﻿using System;
+﻿/*
+using System;
 using System.Collections.Generic;
 
 namespace local_events_app.Models
@@ -25,3 +26,4 @@ namespace local_events_app.Models
         public string DateTime { get; set; }
     }
 }
+*/

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿/*using System.Collections.Generic;
 using System.Threading.Tasks;
 using local_events_app.Models;
 using local_events_app.Services;
@@ -20,3 +20,4 @@ namespace local_events_app.Controllers
         }
     }
 }
+*/

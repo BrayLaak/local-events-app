@@ -1,4 +1,5 @@
-﻿using System;
+﻿/*
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GraphQL;
@@ -99,3 +100,4 @@ namespace local_events_app.Services
         }
     }
 }
+*/

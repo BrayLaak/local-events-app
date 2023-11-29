@@ -3,7 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using local_events_app.Data;
 using local_events_app.Services;
-using local_events_app.Controllers;
+//using local_events_app.Controllers;
+using local_events_app.UI;
 
 class Program
 {
@@ -16,23 +17,23 @@ class Program
 
         var serviceProvider = new ServiceCollection()
             .AddSingleton<IConfiguration>(configuration)
-            .AddScoped<MeetupDbContext>()
-            .AddScoped<MeetupService>()
-            .AddScoped<MeetupController>()
+            .AddScoped<AppDbContext>()
+            .AddScoped<LexingtonGovScraperService>()
             .BuildServiceProvider();
-
-        var baseUrl = configuration["MeetupApi:BaseUrl"];
-        var apiKey = configuration["MeetupApi:ApiKey"];
 
         using (var scope = serviceProvider.CreateScope())
         {
-            var dbContext = scope.ServiceProvider.GetRequiredService<MeetupDbContext>();
-            var meetupService = scope.ServiceProvider.GetRequiredService<MeetupService>();
-            var meetupController = scope.ServiceProvider.GetRequiredService<MeetupController>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var scraperService = scope.ServiceProvider.GetRequiredService<LexingtonGovScraperService>();
 
-            var consoleUI = new ConsoleUI(meetupController, dbContext);
+            // Create an instance of the scraper service
+            LexingtonGovScraperService scraper = new LexingtonGovScraperService();
 
-            // Run the console UI
+            // Call the ScrapeEventsAsync method to initiate scraping
+            var scrapedEvents = scraper.ScrapeEventsAsync().Result;
+
+            // Run the console UI with the scraper service and scraped events
+            var consoleUI = new ConsoleUI(scraperService, dbContext, scrapedEvents);
             consoleUI.Run().Wait();
         }
     }

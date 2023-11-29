@@ -4,104 +4,127 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using CsvHelper;
-using local_events_app.Controllers;
+//using local_events_app.Controllers;
 using local_events_app.Data;
 using local_events_app.Models;
+using local_events_app.Services;
 
-public class ConsoleUI
+namespace local_events_app.UI
 {
-    private readonly MeetupController _meetupController;
-    private readonly MeetupDbContext _dbContext;
-
-    public ConsoleUI(MeetupController meetupController, MeetupDbContext dbContext)
+    public class ConsoleUI
     {
-        _meetupController = meetupController;
-        _dbContext = dbContext;
-    }
+        private readonly LexingtonGovScraperService _scraperService;
+        private readonly AppDbContext _dbContext;
+        private readonly List<ScrapedEvent> _scrapedEvents;
 
-    public async Task Run()
-    {
-        while (true)
+        public ConsoleUI(LexingtonGovScraperService scraperService, AppDbContext dbContext, List<ScrapedEvent> scrapedEvents)
         {
-            Console.WriteLine("1. Search Local Meetup Events");
-            Console.WriteLine("2. Display Saved Meetup Events");
-            Console.WriteLine("3. Save Meetup Event");
-            Console.WriteLine("4. Export Saved Events to CSV");
-            Console.WriteLine("5. Exit");
+            _scraperService = scraperService;
+            _dbContext = dbContext;
+            _scrapedEvents = scrapedEvents;
+        }
 
-            Console.Write("Enter your choice: ");
-            var choice = Console.ReadLine();
+        public async Task Run()
+        {
+            List<ScrapedEvent> events = null; // Initialize events
 
-            switch (choice)
+            while (true)
             {
-                case "1":
-                    Console.Write("Enter location: ");
-                    var location = Console.ReadLine();
-                    var meetupEvents = await _meetupController.SearchLocalEventsAsync(location);
+                Console.WriteLine("1. Search Local Events");
+                Console.WriteLine("2. Display Saved Events");
+                Console.WriteLine("3. Save Event");
+                Console.WriteLine("4. Export Saved Events to CSV");
+                Console.WriteLine("5. Exit");
 
-                    // Process and display Meetup events in the console UI
-                    foreach (var meetupEvent in meetupEvents)
-                    {
-                        Console.WriteLine($"Name: {meetupEvent.Name}");
-                        Console.WriteLine($"Description: {meetupEvent.Description}");
-                        Console.WriteLine($"DateTime: {meetupEvent.Time}");
-                        Console.WriteLine("------------------------");
-                    }
-                    break;
+                Console.Write("Enter your choice: ");
+                var choice = Console.ReadLine();
 
-                case "2":
-                    // Logic to display saved Meetup events
-                    var savedEvents = _dbContext.SavedMeetupEvents.ToList();
-                    foreach (var savedEvent in savedEvents)
-                    {
-                        Console.WriteLine($"Id: {savedEvent.Id}");
-                        Console.WriteLine($"Name: {savedEvent.Name}");
-                        Console.WriteLine($"Url: {savedEvent.Url}");
-                        Console.WriteLine("------------------------");
-                    }
-                    break;
+                switch (choice)
+                {
+                    case "1":
+                        Console.Write("Enter location: ");
+                        var location = Console.ReadLine();
 
-                case "3":
-                    // Logic to save a Meetup event
-                    Console.Write("Enter the event Id to save: ");
-                    var eventIdToSave = Console.ReadLine();
-                    var eventToSave = meetupEvents.FirstOrDefault(e => e.Id == eventIdToSave);
+                        // Use scraper service to get events
+                        events = await _scraperService.ScrapeEventsAsync();
 
-                    if (eventToSave != null)
-                    {
-                        var savedEvent = new SavedMeetupEvent
+                        // Process and display events in the console UI
+                        foreach (var scrapedEvent in events)
                         {
-                            MeetupEventId = eventToSave.Id,
-                            Name = eventToSave.Name,
-                            Url = eventToSave.Url
-                            // Add other properties as needed
-                        };
+                            Console.WriteLine($"Title: {scrapedEvent.Title}, Date: {scrapedEvent.Date}");
+                            Console.WriteLine($"Description: {scrapedEvent.Description}");
+                            Console.WriteLine($"Location: {scrapedEvent.Location}");
+                            Console.WriteLine($"URL: {scrapedEvent.Url}");
+                            Console.WriteLine();
+                        }
+                        break;
 
-                        _dbContext.SavedMeetupEvents.Add(savedEvent);
-                        _dbContext.SaveChanges();
+                    case "2":
+                        // Logic to display saved events
+                        if (events != null)
+                        {
+                            foreach (var savedEvent in events)
+                            {
+                                Console.WriteLine($"Title: {savedEvent.Title}, Date: {savedEvent.Date}");
+                                Console.WriteLine($"Description: {savedEvent.Description}");
+                                Console.WriteLine($"Location: {savedEvent.Location}");
+                                Console.WriteLine($"URL: {savedEvent.Url}");
+                                Console.WriteLine("------------------------");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("No events available. Please search for events first.");
+                        }
+                        break;
 
-                        Console.WriteLine("Event saved successfully!");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid event Id. No event saved.");
-                    }
-                    break;
+                    case "3":
+                        // Logic to save an event
+                        Console.Write("Enter the event Title to save: ");
+                        var eventTitleToSave = Console.ReadLine();
 
-                case "4":
-                    // Logic to export saved events to CSV
-                    var csvExport = new CsvExport(_dbContext.SavedMeetupEvents.ToList());
-                    csvExport.Export("saved_events.csv");
-                    Console.WriteLine("Saved events exported to 'saved_events.csv'");
-                    break;
+                        var eventToSave = events?.FirstOrDefault(e => e.Title == eventTitleToSave);
 
-                case "5":
-                    Environment.Exit(0);
-                    break;
+                        if (eventToSave != null)
+                        {
+                            // Use the ScrapedEvent entity
+                            _dbContext.ScrapedEvents.Add(eventToSave);
+                            _dbContext.SaveChanges();
 
-                default:
-                    Console.WriteLine("Invalid choice. Please try again.");
-                    break;
+                            Console.WriteLine("Event saved successfully!");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid event Title. No event saved.");
+                        }
+                        break;
+
+                    case "4":
+                        // Logic to export saved events to CSV
+                        if (events != null)
+                        {
+                            using (var writer = new StreamWriter("saved_events.csv"))
+                            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                            {
+                                csv.WriteRecords(events);
+                            }
+
+                            Console.WriteLine("Saved events exported to 'saved_events.csv'");
+                        }
+                        else
+                        {
+                            Console.WriteLine("No events available. Please search for events first.");
+                        }
+                        break;
+
+                    case "5":
+                        Environment.Exit(0);
+                        break;
+
+                    default:
+                        Console.WriteLine("Invalid choice. Please try again.");
+                        break;
+                }
             }
         }
     }
