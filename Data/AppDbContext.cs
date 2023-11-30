@@ -5,7 +5,7 @@ namespace local_events_app.Data
 {
     public class AppDbContext : DbContext
     {
-        public DbSet<ScrapedEvent> ScrapedEvents { get; set; }
+        public DbSet<Event> Events { get; set; }
 
         // Constructor with DbContextOptions, required by migrations and OnConfiguring
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -28,9 +28,6 @@ namespace local_events_app.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configure the model if needed
-
-            // Set Url property as the key for ScrapedEvent
-            modelBuilder.Entity<ScrapedEvent>().HasKey(e => e.Url);
         }
     }
 }

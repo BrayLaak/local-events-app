@@ -10,7 +10,7 @@ using local_events_app.Data;
 namespace local_events_app.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20231129044358_InitialCreate")]
+    [Migration("20231130041439_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -19,10 +19,11 @@ namespace local_events_app.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
 
-            modelBuilder.Entity("local_events_app.Models.ScrapedEvent", b =>
+            modelBuilder.Entity("local_events_app.Models.Event", b =>
                 {
-                    b.Property<string>("Url")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Date")
                         .IsRequired()
@@ -33,16 +34,15 @@ namespace local_events_app.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Location")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Url");
+                    b.HasKey("ID");
 
-                    b.ToTable("ScrapedEvents");
+                    b.ToTable("Events");
                 });
 #pragma warning restore 612, 618
         }

@@ -12,31 +12,25 @@ namespace local_events_app.UI
 {
     public class ConsoleUI
     {
-        private readonly LexingtonGovScraperService _scraperService;
         private readonly EventService _eventService;
-        private readonly AppDbContext _dbContext;
-        private readonly List<ScrapedEvent> _scrapedEvents;
 
-        public ConsoleUI(LexingtonGovScraperService scraperService, EventService eventService, AppDbContext dbContext)
+        public ConsoleUI(EventService eventService)
         {
-            _scraperService = scraperService;
             _eventService = eventService;
-            _dbContext = dbContext;
         }
 
         public async Task Run()
         {
-            List<ScrapedEvent> events = null; // Initialize events
+            List<Event> events = null; // Initialize events
 
             while (true)
             {
-                Console.WriteLine("1. Search Local Events");
-                Console.WriteLine("2. Display Saved Events");
-                Console.WriteLine("3. Save Event");
-                Console.WriteLine("4. Export Saved Events to CSV");
-                Console.WriteLine("5. View Existing Events");
-                Console.WriteLine("6. Delete Event");
-                Console.WriteLine("7. Exit");
+                Console.WriteLine("1. Add Event");
+                Console.WriteLine("2. Display Events");
+                Console.WriteLine("3. Modify Event");
+                Console.WriteLine("4. Delete Event");
+                Console.WriteLine("5. Export Saved Events to CSV");
+                Console.WriteLine("6. Exit");
 
                 Console.Write("Enter your choice: ");
                 var choice = Console.ReadLine();
@@ -44,14 +38,26 @@ namespace local_events_app.UI
                 switch (choice)
                 {
                     case "1":
-                        Console.Write("Enter location: ");
-                        var location = Console.ReadLine();
+                        // Logic to add an event
+                        Console.Write("Enter the event Title to save: ");
+                        var eventTitleToSave = Console.ReadLine();
+                        Console.Write("Enter the event Date: ");
+                        var eventDateToSave = Console.ReadLine();
+                        Console.Write("Enter the event Description: ");
+                        var eventDescriptionToSave = Console.ReadLine();
+                        Console.Write("Enter the event Location: ");
+                        var eventLocationToSave = Console.ReadLine();
 
-                        // Use scraper service to get events
-                        events = await _scraperService.ScrapeEventsAsync();
+                        var newEvent = new Event
+                        {
+                            Title = eventTitleToSave,
+                            Date = eventDateToSave,
+                            Description = eventDescriptionToSave,
+                            Location = eventLocationToSave
+                        };
 
-                        // Process and display events in the console UI
-                        DisplayEvents(events);
+                        _eventService.AddEvent(newEvent);
+                        Console.WriteLine("Event added successfully!");
                         break;
 
                     case "2":
@@ -60,26 +66,46 @@ namespace local_events_app.UI
                         break;
 
                     case "3":
-                        // Logic to save an event
-                        SaveEvent();
+                        // Logic to modify an event
+                        Console.Write("Enter the event ID to modify: ");
+                        var eventIDToModify = int.Parse(Console.ReadLine());
+
+                        var eventToModify = _eventService.GetEventById(eventIDToModify);
+
+                        if (eventToModify != null)
+                        {
+                            Console.Write($"Enter new Title for event (current: {eventToModify.Title}): ");
+                            eventToModify.Title = Console.ReadLine();
+
+                            Console.Write($"Enter new Date for event (current: {eventToModify.Date}): ");
+                            eventToModify.Date = Console.ReadLine();
+
+                            Console.Write($"Enter new Description for event (current: {eventToModify.Description}): ");
+                            eventToModify.Description = Console.ReadLine();
+
+                            Console.Write($"Enter new Location for event (current: {eventToModify.Location}): ");
+                            eventToModify.Location = Console.ReadLine();
+
+                            _eventService.ModifyEvent(eventIDToModify, eventToModify);
+                            Console.WriteLine("Event modified successfully!");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Event not found.");
+                        }
                         break;
 
                     case "4":
-                        // Logic to export saved events to CSV
-                        ExportSavedEventsToCsv();
-                        break;
-
-                    case "5":
-                        // Logic to view existing events
-                        ViewExistingEvents();
-                        break;
-
-                    case "6":
                         // Logic to delete an event
                         DeleteEvent();
                         break;
 
-                    case "7":
+                    case "5":
+                        // Logic to export saved events to CSV
+                        ExportSavedEventsToCsv();
+                        break;
+
+                    case "6":
                         Environment.Exit(0);
                         break;
 
@@ -90,15 +116,16 @@ namespace local_events_app.UI
             }
         }
 
-        private void DisplayEvents(List<ScrapedEvent> events)
+        private void DisplayEvents(List<Event> events)
         {
             // Display events in the console UI
-            foreach (var scrapedEvent in events)
+            foreach (var Event in events)
             {
-                Console.WriteLine($"Title: {scrapedEvent.Title}, Date: {scrapedEvent.Date}");
-                Console.WriteLine($"Description: {scrapedEvent.Description}");
-                Console.WriteLine($"Location: {scrapedEvent.Location}");
-                Console.WriteLine($"URL: {scrapedEvent.Url}");
+                Console.WriteLine($"ID: {Event.ID}");
+                Console.WriteLine($"Title: {Event.Title}");
+                Console.WriteLine($"Date: {Event.Date}");
+                Console.WriteLine($"Description: {Event.Description}");
+                Console.WriteLine($"Location: {Event.Location}");
                 Console.WriteLine();
             }
         }
@@ -106,33 +133,14 @@ namespace local_events_app.UI
         private void ViewSavedEvents()
         {
             // Logic to display saved events
-            var savedEvents = _eventService.GetSavedEvents();
+            var savedEvents = _eventService.GetEvents();
             DisplayEvents(savedEvents);
-        }
-
-        private void SaveEvent()
-        {
-            Console.Write("Enter the event Title to save: ");
-            var eventTitleToSave = Console.ReadLine();
-
-            var eventToSave = _scrapedEvents?.FirstOrDefault(e => e.Title == eventTitleToSave);
-
-            if (eventToSave != null)
-            {
-                // Use the EventService to save the event
-                _eventService.SaveEvent(eventToSave);
-                Console.WriteLine("Event saved successfully!");
-            }
-            else
-            {
-                Console.WriteLine("Invalid event Title. No event saved.");
-            }
         }
 
         private void ExportSavedEventsToCsv()
         {
             // Logic to export saved events to CSV
-            var savedEvents = _eventService.GetSavedEvents();
+            var savedEvents = _eventService.GetEvents();
             if (savedEvents != null)
             {
                 using (var writer = new StreamWriter("saved_events.csv"))
@@ -145,24 +153,17 @@ namespace local_events_app.UI
             }
             else
             {
-                Console.WriteLine("No events available. Please search for events first.");
+                Console.WriteLine("No events available. Please add events first.");
             }
-        }
-
-        private void ViewExistingEvents()
-        {
-            // Use the EventService to get and display saved events
-            var savedEvents = _eventService.GetSavedEvents();
-            DisplayEvents(savedEvents);
         }
 
         private void DeleteEvent()
         {
-            Console.Write("Enter the event Title to delete: ");
-            var eventTitleToDelete = Console.ReadLine();
+            Console.Write("Enter the event ID to delete: ");
+            var eventIDToDelete = int.Parse(Console.ReadLine());
 
             // Use the EventService to delete the event
-            _eventService.DeleteEvent(eventTitleToDelete);
+            _eventService.DeleteEvent(eventIDToDelete);
             Console.WriteLine("Event deleted successfully!");
         }
     }

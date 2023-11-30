@@ -17,18 +17,16 @@ class Program
         var serviceProvider = new ServiceCollection()
             .AddSingleton<IConfiguration>(configuration)
             .AddScoped<AppDbContext>()
-            .AddScoped<LexingtonGovScraperService>()
-            .AddScoped<EventService>() // Add EventService to the DI container
+            .AddScoped<EventService>()
             .BuildServiceProvider();
 
         using (var scope = serviceProvider.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var scraperService = scope.ServiceProvider.GetRequiredService<LexingtonGovScraperService>();
             var eventService = scope.ServiceProvider.GetRequiredService<EventService>(); // Retrieve EventService
 
             // Run the console UI with the scraper service, event service, and db context
-            var consoleUI = new ConsoleUI(scraperService, eventService, dbContext);
+            var consoleUI = new ConsoleUI(eventService);
             consoleUI.Run().Wait();
         }
     }
