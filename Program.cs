@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using local_events_app.Data;
 using local_events_app.Services;
-//using local_events_app.Controllers;
 using local_events_app.UI;
 
 class Program
@@ -19,21 +18,17 @@ class Program
             .AddSingleton<IConfiguration>(configuration)
             .AddScoped<AppDbContext>()
             .AddScoped<LexingtonGovScraperService>()
+            .AddScoped<EventService>() // Add EventService to the DI container
             .BuildServiceProvider();
 
         using (var scope = serviceProvider.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var scraperService = scope.ServiceProvider.GetRequiredService<LexingtonGovScraperService>();
+            var eventService = scope.ServiceProvider.GetRequiredService<EventService>(); // Retrieve EventService
 
-            // Create an instance of the scraper service
-            LexingtonGovScraperService scraper = new LexingtonGovScraperService();
-
-            // Call the ScrapeEventsAsync method to initiate scraping
-            var scrapedEvents = scraper.ScrapeEventsAsync().Result;
-
-            // Run the console UI with the scraper service and scraped events
-            var consoleUI = new ConsoleUI(scraperService, dbContext, scrapedEvents);
+            // Run the console UI with the scraper service, event service, and db context
+            var consoleUI = new ConsoleUI(scraperService, eventService, dbContext);
             consoleUI.Run().Wait();
         }
     }
