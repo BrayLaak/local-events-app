@@ -10,7 +10,7 @@ using local_events_app.Data;
 namespace local_events_app.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20231130041439_InitialCreate")]
+    [Migration("20231130042637_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

@@ -143,19 +143,31 @@ namespace local_events_app.UI
             var savedEvents = _eventService.GetEvents();
             if (savedEvents != null)
             {
-                using (var writer = new StreamWriter("saved_events.csv"))
+                string projectDirectory = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
+                string exportFolderPath = Path.GetFullPath(Path.Combine(projectDirectory, "..", "..", "..", "EventExports"));
+
+                // Create the folder if it doesn't exist
+                if (!Directory.Exists(exportFolderPath))
+                {
+                    Directory.CreateDirectory(exportFolderPath);
+                }
+
+                string fullPath = Path.Combine(exportFolderPath, "saved_events.csv");
+
+                using (var writer = new StreamWriter(fullPath))
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteRecords(savedEvents);
                 }
 
-                Console.WriteLine("Saved events exported to 'saved_events.csv'");
+                Console.WriteLine($"Saved events exported to '{fullPath}'");
             }
             else
             {
                 Console.WriteLine("No events available. Please add events first.");
             }
         }
+
 
         private void DeleteEvent()
         {

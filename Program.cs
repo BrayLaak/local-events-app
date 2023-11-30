@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using local_events_app.Data;
 using local_events_app.Services;
 using local_events_app.UI;
+using Microsoft.EntityFrameworkCore;
 
 class Program
 {
@@ -23,9 +24,18 @@ class Program
         using (var scope = serviceProvider.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var eventService = scope.ServiceProvider.GetRequiredService<EventService>(); // Retrieve EventService
 
-            // Run the console UI with the scraper service, event service, and db context
+            // Ensure the database is created and migrations are applied
+            try
+            {
+                dbContext.Database.Migrate();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during database migration: {ex.Message}");
+            }
+
+            var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
             var consoleUI = new ConsoleUI(eventService);
             consoleUI.Run().Wait();
         }
