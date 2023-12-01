@@ -9,7 +9,7 @@ namespace local_events_app.Models
         public int ID { get; set; }
 
         [Required(ErrorMessage = "Title is required.")]
-        [RegularExpression("^[A-Za-z0-9 ]+$", ErrorMessage = "Title should only contain letters, numbers, and spaces.")]
+        [RegularExpression("^[A-Za-z0-9 \\p{P}]+$", ErrorMessage = "Title should only contain letters, numbers, spaces, and special characters.")]
         public string Title { get; set; }
 
         [Required(ErrorMessage = "Date is required.")]
@@ -17,10 +17,10 @@ namespace local_events_app.Models
         public string Date { get; set; }
 
         [Required(ErrorMessage = "Description is required.")]
-        [RegularExpression("^[A-Za-z0-9 ]+$", ErrorMessage = "Description should only contain letters, numbers, and spaces.")]
+        [RegularExpression("^[A-Za-z0-9 \\p{P}]+$", ErrorMessage = "Description should only contain letters, numbers, spaces, and special characters.")]
         public string Description { get; set; }
 
-        [RegularExpression("^[A-Za-z0-9 ]*$", ErrorMessage = "Location should only contain letters, numbers, and spaces.")]
+        [RegularExpression("^[A-Za-z0-9 \\p{P}]+$", ErrorMessage = "Location should only contain letters, numbers, spaces, and special characters.")]
         public string? Location { get; set; }
     }
 }
